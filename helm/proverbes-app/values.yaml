@@ -15,7 +15,7 @@ backend:
 
 frontend:
   image: localhost:5000/proverbes-frontend
-  tag: v6
+  tag: v7
   replicas: 1
   port: 80
 
