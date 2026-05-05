@@ -8,62 +8,41 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build backend image
+      - name: Start services
         run: |
-          docker build -t proverbes-backend:${{ github.sha }} ./backend
-          docker tag proverbes-backend:${{ github.sha }} proverbes-backend:latest
+          sudo service docker start || true
+          sudo systemctl start k3s || true
 
-      - name: Build frontend image
+      - name: Build images
         run: |
-          docker build \
-            --build-arg VITE_API_URL="" \
-            -t proverbes-frontend:${{ github.sha }} ./frontend
-          docker tag proverbes-frontend:${{ github.sha }} proverbes-frontend:latest
+          cd $GITHUB_WORKSPACE
+          docker compose build --no-cache
 
-      - name: Deploy to k3s via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          password: ${{ secrets.SERVER_PASSWORD }}
-          port: ${{ secrets.SERVER_PORT }}
-          script: |
-            # Démarrer les services si nécessaire
-            sudo service docker start || true
-            sudo systemctl start k3s || true
+      - name: Tag and push to local registry
+        run: |
+          docker tag proverbes-app-backend:latest localhost:5000/proverbes-backend:${{ github.sha }}
+          docker tag proverbes-app-frontend:latest localhost:5000/proverbes-frontend:${{ github.sha }}
+          docker push localhost:5000/proverbes-backend:${{ github.sha }}
+          docker push localhost:5000/proverbes-frontend:${{ github.sha }}
 
-            # Builder les images sur le serveur
-            cd ~/proverbes-app
-            git pull origin main
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl set image deployment/backend \
+            backend=localhost:5000/proverbes-backend:${{ github.sha }} \
+            -n proverbes
+          kubectl set image deployment/frontend \
+            frontend=localhost:5000/proverbes-frontend:${{ github.sha }} \
+            -n proverbes
+          kubectl rollout status deployment/backend -n proverbes
+          kubectl rollout status deployment/frontend -n proverbes
 
-            docker compose build --no-cache
-            
-            # Tagger et pousser vers le registry local
-            docker tag proverbes-app-backend:latest localhost:5000/proverbes-backend:${{ github.sha }}
-            docker tag proverbes-app-frontend:latest localhost:5000/proverbes-frontend:${{ github.sha }}
-            docker push localhost:5000/proverbes-backend:${{ github.sha }}
-            docker push localhost:5000/proverbes-frontend:${{ github.sha }}
-
-            # Mettre à jour les deployments Kubernetes
-            kubectl set image deployment/backend \
-              backend=localhost:5000/proverbes-backend:${{ github.sha }} \
-              -n proverbes
-            kubectl set image deployment/frontend \
-              frontend=localhost:5000/proverbes-frontend:${{ github.sha }} \
-              -n proverbes
-
-            # Vérifier le déploiement
-            kubectl rollout status deployment/backend -n proverbes
-            kubectl rollout status deployment/frontend -n proverbes
-
-      - name: Notify success
-        run: echo "✅ Déploiement réussi - SHA ${{ github.sha }}"
+      - name: Verify deployment
+        run: |
+          kubectl get pods -n proverbes
+          echo "✅ Déploiement réussi - SHA ${{ github.sha }}"
