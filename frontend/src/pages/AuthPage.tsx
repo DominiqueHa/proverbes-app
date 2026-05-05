@@ -27,7 +27,7 @@ export default function AuthPage() {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h1 style={styles.title}>💬 Proverbes v2.0</h1>
+        <h1 style={styles.title}>💬 Proverbes v2.0 v2.0</h1>
         <h2 style={styles.subtitle}>
           {isLogin ? 'Connexion' : 'Créer un compte'}
         </h2>

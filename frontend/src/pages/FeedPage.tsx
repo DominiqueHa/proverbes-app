@@ -70,7 +70,7 @@ export default function FeedPage() {
   return (
     <div style={styles.container}>
       <header style={styles.header}>
-        <h1 style={styles.logo}>💬 Proverbes v2.0</h1>
+        <h1 style={styles.logo}>💬 Proverbes v2.0 v2.0</h1>
         <div style={styles.userInfo}>
           <span style={styles.pseudo}>@{user?.pseudo}</span>
           <button style={styles.logoutBtn} onClick={() => { logout(); navigate('/auth'); }}>
