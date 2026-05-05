@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: proverbes-config
+  namespace: proverbes
+data:
+  DB_HOST: postgres-service
+  DB_PORT: "5432"
+  DB_NAME: proverbes
+  DB_USER: postgres
+  PORT: "3000"
