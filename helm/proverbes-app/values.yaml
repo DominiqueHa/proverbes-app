@@ -1,0 +1,39 @@
+namespace: proverbes
+
+backend:
+  image: localhost:5000/proverbes-backend
+  tag: v1
+  replicas: 2
+  port: 3000
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "256Mi"
+
+frontend:
+  image: localhost:5000/proverbes-frontend
+  tag: v6
+  replicas: 1
+  port: 80
+
+postgres:
+  image: postgres
+  tag: "15"
+  port: 5432
+  database: proverbes
+  user: postgres
+  storage: 1Gi
+
+secrets:
+  dbPassword: postgres
+  jwtSecret: mon_super_secret_jwt_change_moi
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  cpuUtilization: 70
+  memoryUtilization: 80
