@@ -4,8 +4,11 @@ metadata:
   name: proverbes-ingress
   namespace: {{ .Values.namespace }}
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
+  tls:
+    - secretName: proverbes-tls-secret
   rules:
     - http:
         paths:
