@@ -1,0 +1,16 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: proverbes-tls
+  namespace: proverbes
+spec:
+  secretName: proverbes-tls-secret
+  issuerRef:
+    name: proverbes-ca-issuer
+    kind: ClusterIssuer
+  commonName: 192.168.100.161
+  dnsNames:
+    - localhost
+  ipAddresses:
+    - 192.168.100.161
+    - 127.0.0.1
