@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Moon, Sun } from 'lucide-react';
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../hooks/useTheme';
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -10,6 +12,7 @@ export default function AuthPage() {
   const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,12 +29,14 @@ export default function AuthPage() {
 
   return (
     <div style={styles.container}>
+      <button style={styles.themeToggle} onClick={toggleTheme}>
+        {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+      </button>
       <div style={styles.card}>
-        <h1 style={styles.title}>💬 Proverbes v2.0 v2.0</h1>
+        <h1 style={styles.title}>💬 Proverbes</h1>
         <h2 style={styles.subtitle}>
           {isLogin ? 'Connexion' : 'Créer un compte'}
         </h2>
-
         <form onSubmit={handleSubmit} style={styles.form}>
           <input
             style={styles.input}
@@ -54,7 +59,6 @@ export default function AuthPage() {
             {isLogin ? 'Se connecter' : "S'inscrire"}
           </button>
         </form>
-
         <p style={styles.toggle}>
           {isLogin ? 'Pas encore de compte ?' : 'Déjà un compte ?'}
           <button style={styles.link} onClick={() => setIsLogin(!isLogin)}>
@@ -68,29 +72,62 @@ export default function AuthPage() {
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    minHeight: '100vh', display: 'flex',
-    alignItems: 'center', justifyContent: 'center',
-    background: '#f0f2f5',
+    minHeight: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  themeToggle: {
+    position: 'fixed',
+    top: 16,
+    right: 16,
+    background: 'var(--bg-card)',
+    border: '1px solid var(--border)',
+    borderRadius: 8,
+    padding: '8px 10px',
+    cursor: 'pointer',
+    color: 'var(--text-primary)',
+    display: 'flex',
+    alignItems: 'center',
+    backdropFilter: 'blur(10px)',
   },
   card: {
-    background: 'white', borderRadius: 12,
-    padding: 40, width: 360,
-    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+    background: 'var(--bg-card)',
+    backdropFilter: 'blur(10px)',
+    borderRadius: 12,
+    padding: 40,
+    width: 360,
+    boxShadow: 'var(--shadow-card)',
   },
-  title: { textAlign: 'center', fontSize: 32, marginBottom: 4 },
-  subtitle: { textAlign: 'center', color: '#666', marginBottom: 24, fontSize: 18 },
+  title: { textAlign: 'center', fontSize: 32, marginBottom: 4, color: 'var(--text-primary)' },
+  subtitle: { textAlign: 'center', color: 'var(--text-secondary)', marginBottom: 24, fontSize: 18 },
   form: { display: 'flex', flexDirection: 'column', gap: 12 },
   input: {
-    padding: '12px 16px', borderRadius: 8,
-    border: '1px solid #ddd', fontSize: 16, outline: 'none',
+    padding: '12px 16px',
+    borderRadius: 8,
+    border: '1px solid var(--border)',
+    fontSize: 16,
+    outline: 'none',
+    background: 'var(--bg-card)',
+    color: 'var(--text-primary)',
   },
   button: {
-    padding: '12px 16px', borderRadius: 8,
-    background: '#4f46e5', color: 'white',
-    border: 'none', fontSize: 16, cursor: 'pointer',
+    padding: '12px 16px',
+    borderRadius: 8,
+    background: 'var(--btn-primary)',
+    color: 'white',
+    border: 'none',
+    fontSize: 16,
+    cursor: 'pointer',
     marginTop: 8,
   },
-  error: { color: '#ef4444', fontSize: 14, textAlign: 'center' },
-  toggle: { textAlign: 'center', marginTop: 16, color: '#666' },
-  link: { background: 'none', border: 'none', color: '#4f46e5', cursor: 'pointer', fontSize: 14 },
+  error: { color: 'var(--btn-danger)', fontSize: 14, textAlign: 'center' },
+  toggle: { textAlign: 'center', marginTop: 16, color: 'var(--text-secondary)' },
+  link: {
+    background: 'none',
+    border: 'none',
+    color: 'var(--btn-primary)',
+    cursor: 'pointer',
+    fontSize: 14,
+  },
 };

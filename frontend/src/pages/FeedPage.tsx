@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
+import { Moon, Sun } from 'lucide-react';
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
 import type { Comment } from '../types';
 import CommentCard from '../components/CommentCard';
+import { useTheme } from '../hooks/useTheme';
 
 const socket = io('', {
   path: '/socket.io',
@@ -14,6 +16,7 @@ const socket = io('', {
 export default function FeedPage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const [comments, setComments] = useState<Comment[]>([]);
   const [newText, setNewText] = useState('');
   const [error, setError] = useState('');
@@ -21,19 +24,16 @@ export default function FeedPage() {
 
   useEffect(() => {
     if (!user) { navigate('/auth'); return; }
-
     api.get('/api/comments').then(({ data }) => {
       setComments(data);
       setLoading(false);
     });
-
     socket.on('comment_added', (comment: Comment) => {
       setComments((prev) => {
         if (prev.find((c) => c.id === comment.id)) return prev;
         return [comment, ...prev];
       });
     });
-
     return () => { socket.off('comment_added'); };
   }, []);
 
@@ -70,9 +70,12 @@ export default function FeedPage() {
   return (
     <div style={styles.container}>
       <header style={styles.header}>
-        <h1 style={styles.logo}>💬 Proverbes v2.0 v2.0</h1>
+        <h1 style={styles.logo}>💬 Proverbes</h1>
         <div style={styles.userInfo}>
           <span style={styles.pseudo}>@{user?.pseudo}</span>
+          <button style={styles.themeBtn} onClick={toggleTheme}>
+            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+          </button>
           <button style={styles.logoutBtn} onClick={() => { logout(); navigate('/auth'); }}>
             Déconnexion
           </button>
@@ -117,43 +120,77 @@ export default function FeedPage() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container: { minHeight: '100vh', background: '#f0f2f5' },
+  container: { minHeight: '100vh' },
   header: {
-    background: 'white', padding: '16px 24px',
-    display: 'flex', justifyContent: 'space-between',
-    alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-    position: 'sticky', top: 0, zIndex: 100,
+    background: 'var(--bg-header)',
+    backdropFilter: 'blur(10px)',
+    padding: '16px 24px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    boxShadow: 'var(--shadow)',
+    position: 'sticky',
+    top: 0,
+    zIndex: 100,
   },
-  logo: { fontSize: 24, margin: 0 },
+  logo: { fontSize: 24, margin: 0, color: 'var(--text-primary)' },
   userInfo: { display: 'flex', alignItems: 'center', gap: 12 },
-  pseudo: { fontWeight: 700, color: '#4f46e5' },
+  pseudo: { fontWeight: 700, color: 'var(--text-pseudo)' },
+  themeBtn: {
+    background: 'none',
+    border: '1px solid var(--border)',
+    borderRadius: 8,
+    padding: '6px 10px',
+    cursor: 'pointer',
+    color: 'var(--text-primary)',
+    display: 'flex',
+    alignItems: 'center',
+  },
   logoutBtn: {
-    padding: '6px 14px', borderRadius: 8,
-    border: '1px solid #ef4444', color: '#ef4444',
-    background: 'none', cursor: 'pointer',
+    padding: '6px 14px',
+    borderRadius: 8,
+    border: '1px solid var(--btn-danger)',
+    color: 'var(--btn-danger)',
+    background: 'none',
+    cursor: 'pointer',
   },
   main: { maxWidth: 680, margin: '0 auto', padding: '24px 16px' },
   postForm: {
-    background: 'white', borderRadius: 12,
-    padding: 20, marginBottom: 24,
-    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+    background: 'var(--bg-card)',
+    backdropFilter: 'blur(10px)',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 24,
+    boxShadow: 'var(--shadow)',
   },
   textarea: {
-    width: '100%', padding: '12px 16px',
-    borderRadius: 8, border: '1px solid #ddd',
-    fontSize: 15, resize: 'none', boxSizing: 'border-box',
+    width: '100%',
+    padding: '12px 16px',
+    borderRadius: 8,
+    border: '1px solid var(--border)',
+    fontSize: 15,
+    resize: 'none',
+    boxSizing: 'border-box',
+    background: 'var(--bg-card)',
+    color: 'var(--text-primary)',
   },
   postActions: {
-    display: 'flex', justifyContent: 'space-between',
-    alignItems: 'center', marginTop: 8,
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
   },
-  charCount: { color: '#999', fontSize: 13 },
+  charCount: { color: 'var(--text-secondary)', fontSize: 13 },
   postBtn: {
-    padding: '10px 24px', borderRadius: 8,
-    background: '#4f46e5', color: 'white',
-    border: 'none', cursor: 'pointer', fontSize: 15,
+    padding: '10px 24px',
+    borderRadius: 8,
+    background: 'var(--btn-primary)',
+    color: 'white',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: 15,
   },
-  error: { color: '#ef4444', fontSize: 13 },
-  loading: { textAlign: 'center', color: '#999', marginTop: 40 },
-  empty: { textAlign: 'center', color: '#999', marginTop: 40, fontSize: 16 },
+  error: { color: 'var(--btn-danger)', fontSize: 13 },
+  loading: { textAlign: 'center', color: 'var(--text-secondary)', marginTop: 40 },
+  empty: { textAlign: 'center', color: 'var(--text-secondary)', marginTop: 40, fontSize: 16 },
 };
