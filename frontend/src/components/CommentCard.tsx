@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Heart } from 'lucide-react';
 import type { Comment } from '../types';
 import { useAuth } from '../context/AuthContext';
 import api from '../api';
@@ -15,6 +16,8 @@ export default function CommentCard({ comment, replies, onNewComment, onDelete }
   const [showReply, setShowReply] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [error, setError] = useState('');
+  const [liked, setLiked] = useState(comment.user_liked || false);
+  const [likesCount, setLikesCount] = useState(Number(comment.likes_count) || 0);
 
   const handleReply = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +35,16 @@ export default function CommentCard({ comment, replies, onNewComment, onDelete }
     }
   };
 
+  const handleLike = async () => {
+    try {
+      const { data } = await api.post(`/api/comments/${comment.id}/like`);
+      setLiked(data.liked);
+      setLikesCount((prev) => data.liked ? prev + 1 : prev - 1);
+    } catch {
+      alert('Erreur lors du like');
+    }
+  };
+
   return (
     <div style={styles.card}>
       <div style={styles.header}>
@@ -40,10 +53,23 @@ export default function CommentCard({ comment, replies, onNewComment, onDelete }
           {new Date(comment.created_at).toLocaleString('fr-FR')}
         </span>
       </div>
+
       <p style={styles.content}>{comment.content}</p>
+
       <div style={styles.actions}>
         <button style={styles.replyBtn} onClick={() => setShowReply(!showReply)}>
           💬 Répondre
+        </button>
+        <button
+          style={{
+            ...styles.likeBtn,
+            color: liked ? '#ef4444' : 'var(--text-secondary)',
+            borderColor: liked ? '#ef4444' : 'var(--border)',
+          }}
+          onClick={handleLike}
+        >
+          <Heart size={14} fill={liked ? '#ef4444' : 'none'} />
+          {likesCount > 0 && <span>{likesCount}</span>}
         </button>
         {user?.id === comment.author_id && (
           <button style={styles.deleteBtn} onClick={() => onDelete(comment.id)}>
@@ -51,6 +77,7 @@ export default function CommentCard({ comment, replies, onNewComment, onDelete }
           </button>
         )}
       </div>
+
       {showReply && (
         <form onSubmit={handleReply} style={styles.replyForm}>
           <input
@@ -64,14 +91,17 @@ export default function CommentCard({ comment, replies, onNewComment, onDelete }
           <button style={styles.replySubmit} type="submit">Envoyer</button>
         </form>
       )}
+
       {replies.length > 0 && (
         <div style={styles.replies}>
           {replies.map((reply) => (
             <div key={reply.id} style={styles.reply}>
-              <span style={styles.pseudo}>@{reply.author_pseudo}</span>
-              <span style={styles.date}>
-                {new Date(reply.created_at).toLocaleString('fr-FR')}
-              </span>
+              <div style={styles.header}>
+                <span style={styles.pseudo}>@{reply.author_pseudo}</span>
+                <span style={styles.date}>
+                  {new Date(reply.created_at).toLocaleString('fr-FR')}
+                </span>
+              </div>
               <p style={styles.content}>{reply.content}</p>
               {user?.id === reply.author_id && (
                 <button style={styles.deleteBtn} onClick={() => onDelete(reply.id)}>
@@ -99,7 +129,7 @@ const styles: Record<string, React.CSSProperties> = {
   pseudo: { fontWeight: 700, color: 'var(--text-pseudo)' },
   date: { color: 'var(--text-secondary)', fontSize: 12 },
   content: { fontSize: 16, lineHeight: 1.5, margin: '8px 0', color: 'var(--text-primary)' },
-  actions: { display: 'flex', gap: 8, marginTop: 8 },
+  actions: { display: 'flex', gap: 8, marginTop: 8, alignItems: 'center' },
   replyBtn: {
     background: 'none',
     border: '1px solid var(--btn-primary)',
@@ -108,6 +138,17 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '4px 12px',
     cursor: 'pointer',
     fontSize: 13,
+  },
+  likeBtn: {
+    background: 'none',
+    border: '1px solid var(--border)',
+    borderRadius: 6,
+    padding: '4px 12px',
+    cursor: 'pointer',
+    fontSize: 13,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
   },
   deleteBtn: {
     background: 'none',
