@@ -24,17 +24,44 @@ export default function FeedPage() {
 
   useEffect(() => {
     if (!user) { navigate('/auth'); return; }
+
     api.get('/api/comments').then(({ data }) => {
       setComments(data);
       setLoading(false);
     });
+
+    // Nouveau commentaire en temps réel
     socket.on('comment_added', (comment: Comment) => {
       setComments((prev) => {
         if (prev.find((c) => c.id === comment.id)) return prev;
         return [comment, ...prev];
       });
     });
-    return () => { socket.off('comment_added'); };
+
+    // Like en temps réel
+    socket.on('like_changed', (data: {
+      commentId: number;
+      likesCount: number;
+      userId: number;
+      liked: boolean;
+    }) => {
+      setComments((prev) =>
+        prev.map((c) =>
+          c.id === data.commentId
+            ? {
+                ...c,
+                likes_count: data.likesCount,
+                user_liked: data.userId === user.id ? data.liked : c.user_liked,
+              }
+            : c
+        )
+      );
+    });
+
+    return () => {
+      socket.off('comment_added');
+      socket.off('like_changed');
+    };
   }, []);
 
   const handlePost = async (e: React.FormEvent) => {

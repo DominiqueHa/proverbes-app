@@ -20,6 +20,9 @@ const io = new Server(httpServer, {
 app.use(cors());
 app.use(express.json());
 
+// Expose io pour les controllers
+app.set('io', io);
+
 app.use('/api/auth', authRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/comments', likeRoutes);
@@ -31,9 +34,6 @@ io.on('connection', (socket) => {
   console.log('🔌 Client connecté:', socket.id);
   socket.on('new_comment', (comment) => {
     io.emit('comment_added', comment);
-  });
-  socket.on('like_updated', (data) => {
-    io.emit('like_changed', data);
   });
   socket.on('disconnect', () => {
     console.log('🔌 Client déconnecté:', socket.id);

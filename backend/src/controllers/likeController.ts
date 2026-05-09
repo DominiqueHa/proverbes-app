@@ -11,40 +11,37 @@ export const toggleLike = async (req: AuthRequest, res: Response): Promise<void>
       [req.userId, id]
     );
 
+    let liked: boolean;
     if (existing.rows.length > 0) {
       await pool.query(
         'DELETE FROM likes WHERE user_id = $1 AND comment_id = $2',
         [req.userId, id]
       );
-      res.json({ liked: false });
+      liked = false;
     } else {
       await pool.query(
         'INSERT INTO likes (user_id, comment_id) VALUES ($1, $2)',
         [req.userId, id]
       );
-      res.json({ liked: true });
+      liked = true;
     }
-  } catch {
-    res.status(500).json({ message: 'Erreur serveur' });
-  }
-};
 
-export const getLikes = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { id } = req.params;
-
-  try {
     const count = await pool.query(
       'SELECT COUNT(*) FROM likes WHERE comment_id = $1',
       [id]
     );
-    const userLiked = await pool.query(
-      'SELECT id FROM likes WHERE user_id = $1 AND comment_id = $2',
-      [req.userId, id]
-    );
-    res.json({
-      count: parseInt(count.rows[0].count),
-      liked: userLiked.rows.length > 0
+
+    const likesCount = parseInt(count.rows[0].count);
+
+    // Émet l'événement via Socket.io
+    req.app.get('io').emit('like_changed', {
+      commentId: parseInt(id),
+      likesCount,
+      userId: req.userId,
+      liked,
     });
+
+    res.json({ liked, likesCount });
   } catch {
     res.status(500).json({ message: 'Erreur serveur' });
   }

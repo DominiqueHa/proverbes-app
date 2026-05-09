@@ -2,7 +2,7 @@ namespace: proverbes
 
 backend:
   image: localhost:5000/proverbes-backend
-  tag: v2
+  tag: v3
   replicas: 2
   port: 3000
   resources:
@@ -15,7 +15,7 @@ backend:
 
 frontend:
   image: localhost:5000/proverbes-frontend
-  tag: v20
+  tag: v30
   replicas: 1
   port: 80
 
