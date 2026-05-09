@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import FeedPage from './pages/FeedPage';
 import AuthPage from './pages/AuthPage';
+import AdminPage from './pages/AdminPage';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -13,6 +14,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Routes>
           <Route path="/" element={<FeedPage />} />
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/admin" element={<AdminPage />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </BrowserRouter>

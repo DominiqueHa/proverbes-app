@@ -24,18 +24,18 @@ export const register = async (req: Request, res: Response): Promise<void> => {
   try {
     const hashedPassword = await bcrypt.hash(password, 12);
     const result = await pool.query(
-      'INSERT INTO users (pseudo, password) VALUES ($1, $2) RETURNING id, pseudo, created_at',
+      'INSERT INTO users (pseudo, password) VALUES ($1, $2) RETURNING id, pseudo, role, created_at',
       [pseudo, hashedPassword]
     );
 
     const user = result.rows[0];
     const token = jwt.sign(
-      { userId: user.id, pseudo: user.pseudo },
+      { userId: user.id, pseudo: user.pseudo, role: user.role },
       process.env.JWT_SECRET || 'secret',
       { expiresIn: '7d' }
     );
 
-    res.status(201).json({ token, user: { id: user.id, pseudo: user.pseudo } });
+    res.status(201).json({ token, user: { id: user.id, pseudo: user.pseudo, role: user.role } });
   } catch (err: any) {
     if (err.code === '23505') {
       res.status(400).json({ message: 'Ce pseudo est déjà pris' });
@@ -73,12 +73,12 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 
     const token = jwt.sign(
-      { userId: user.id, pseudo: user.pseudo },
+      { userId: user.id, pseudo: user.pseudo, role: user.role },
       process.env.JWT_SECRET || 'secret',
       { expiresIn: '7d' }
     );
 
-    res.json({ token, user: { id: user.id, pseudo: user.pseudo } });
+    res.json({ token, user: { id: user.id, pseudo: user.pseudo, role: user.role } });
   } catch {
     res.status(500).json({ message: 'Erreur serveur' });
   }

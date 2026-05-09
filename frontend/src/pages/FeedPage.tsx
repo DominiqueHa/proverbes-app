@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, Shield } from 'lucide-react';
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
 import type { Comment } from '../types';
@@ -73,6 +73,11 @@ export default function FeedPage() {
         <h1 style={styles.logo}>💬 Proverbes</h1>
         <div style={styles.userInfo}>
           <span style={styles.pseudo}>@{user?.pseudo}</span>
+          {user?.role === 'admin' && (
+            <button style={styles.adminBtn} onClick={() => navigate('/admin')}>
+              <Shield size={16} /> Admin
+            </button>
+          )}
           <button style={styles.themeBtn} onClick={toggleTheme}>
             {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
           </button>
@@ -136,6 +141,18 @@ const styles: Record<string, React.CSSProperties> = {
   logo: { fontSize: 24, margin: 0, color: 'var(--text-primary)' },
   userInfo: { display: 'flex', alignItems: 'center', gap: 12 },
   pseudo: { fontWeight: 700, color: 'var(--text-pseudo)' },
+  adminBtn: {
+    padding: '6px 14px',
+    borderRadius: 8,
+    border: '1px solid var(--btn-primary)',
+    color: 'var(--btn-primary)',
+    background: 'none',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    fontSize: 13,
+  },
   themeBtn: {
     background: 'none',
     border: '1px solid var(--border)',

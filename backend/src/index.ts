@@ -7,6 +7,7 @@ import { pool } from './config/database';
 import authRoutes from './routes/auth';
 import commentRoutes from './routes/comments';
 import likeRoutes from './routes/likes';
+import adminRoutes from './routes/admin';
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/comments', likeRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
 
