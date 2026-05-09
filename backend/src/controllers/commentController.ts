@@ -8,12 +8,16 @@ export const getComments = async (req: AuthRequest, res: Response): Promise<void
       SELECT 
         c.id, c.content, c.parent_id, c.created_at,
         u.pseudo as author_pseudo,
-        u.id as author_id
+        u.id as author_id,
+        COUNT(DISTINCT l.id) as likes_count,
+        BOOL_OR(l.user_id = $1) as user_liked
       FROM comments c
       JOIN users u ON c.author_id = u.id
+      LEFT JOIN likes l ON c.id = l.comment_id
+      GROUP BY c.id, u.pseudo, u.id
       ORDER BY c.created_at DESC
       LIMIT 100
-    `);
+    `, [req.userId]);
     res.json(result.rows);
   } catch {
     res.status(500).json({ message: 'Erreur serveur' });
@@ -45,6 +49,8 @@ export const createComment = async (req: AuthRequest, res: Response): Promise<vo
       ...result.rows[0],
       author_pseudo: req.pseudo,
       author_id: req.userId,
+      likes_count: 0,
+      user_liked: false,
     };
 
     res.status(201).json(comment);
